@@ -27,7 +27,7 @@ gem "jbuilder"
 # gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -37,7 +37,7 @@ gem "bootsnap", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ]
+  gem "debug"
 end
 
 group :development do
@@ -62,3 +62,21 @@ gem "react_on_rails", "= 14.2"
 gem "shakapacker", "= 8.3"
 
 gem "foreman"
+
+gem 'caxlsx_rails'
+
+gem 'axlsx', github: 'randym/axlsx'
+
+gem 'httparty'
+
+gem 'image_processing', '~> 1.2'
+
+gem 'mini_magick'
+
+gem 'dotenv'
+
+gem 'roo'
+
+gem 'pry'
+
+gem 'sidekiq', '~> 7.2.4'

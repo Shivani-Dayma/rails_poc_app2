@@ -8,4 +8,10 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  
+  resources :general_files, only: [:index, :create, :show, :destroy, :update] do
+    member do
+      get :download_excel
+    end
+  end  
 end
