@@ -80,3 +80,4 @@ gem 'roo'
 gem 'pry'
 
 gem 'sidekiq', '~> 7.2.4'
+

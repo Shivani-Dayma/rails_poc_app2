@@ -27,14 +27,21 @@ class GeneralFilesController < ApplicationController
 
   def show
     @general_file = GeneralFile.active.find(params[:id])
-
-    render json: {
-      id: @general_file.id,
-      file_name: @general_file.file_name,
-      uploaded_at: @general_file.created_at,
-      extracted_records: @general_file.extracted_records.active.map(&:data)
-    }
+  
+    respond_to do |format|
+      format.html # renders show.html.erb
+      format.json {
+        render json: {
+          id: @general_file.id,
+          file_name: @general_file.file_name,
+          uploaded_at: @general_file.created_at,
+          extracted_records: @general_file.extracted_records.active.map(&:data)
+        }
+      }
+    end
   end
+
+
 
   def download_excel
     general_file = GeneralFile.active.find(params[:id])
