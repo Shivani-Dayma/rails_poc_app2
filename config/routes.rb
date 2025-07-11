@@ -7,10 +7,11 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
+  # root "posts#index"
   
   resources :general_files, only: [:index, :create, :show, :destroy, :update] do
     member do
-      get :download_excel
+      get :download_excel, :download_file
     end
   end  
 end

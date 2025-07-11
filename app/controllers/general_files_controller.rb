@@ -41,8 +41,6 @@ class GeneralFilesController < ApplicationController
     end
   end
 
-
-
   def download_excel
     general_file = GeneralFile.active.find(params[:id])
     extracted_records = general_file.extracted_records.active.map(&:data)
@@ -57,6 +55,14 @@ class GeneralFilesController < ApplicationController
     send_file file_path,
               filename: "extracted_records_#{general_file.id}.xlsx",
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  end
+
+  def download_file
+    @general_file = GeneralFile.active.find(params[:id])
+    send_data @general_file.file.download,
+              filename: @general_file.file_name.to_s,
+              type: @general_file.file.content_type,
+              disposition: 'attachment'
   end
 
 	def destroy

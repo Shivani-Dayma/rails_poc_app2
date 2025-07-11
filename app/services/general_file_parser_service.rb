@@ -29,14 +29,16 @@ class GeneralFileParserService
   def build_prompt
     <<~PROMPT
       You are an intelligent document parser.
-
-      The uploaded file may contain **one or multiple records** (e.g., invoices, purchase orders, bills, etc.). Your task is to extract key-value structured data from it.
-
+        
+      The uploaded file may contain **one or multiple records** (e.g., invoices, purchase orders, bills, etc.) in various formats such as PDF, CSV, or others. Your task is to intelligently extract all key-value structured data from it, regardless of the format.
+        
       🔸 If multiple records are present, return them as an array of hashes.
-      🔸 Keys must be consistent across all records.
-      🔸 If some keys are missing, set the value to null.
-      🔸 Use exact keys like: "invoice_number", "date", "amount" (if found).
-      🔸 Avoid duplicates if the same info is spread across pages.
+      🔸 Keys must be consistent across all records, but **only include keys that are actually present in the data**.
+      🔸 Do **not** include any keys with null values—only extract and return the information that is truly available, as a human would when reading the document.
+      🔸 Use human-readable key names in string format with proper spacing and capitalization (e.g., "Invoice Number" instead of "invoice_number").
+      🔸 Extract all relevant details, including itemized descriptions, product names, quantities, rates, taxes, totals, etc.
+      🔸 If multiple line items exist, include them in a single string field using comma separation and clearly retain their respective values (e.g., descriptions with quantities and amounts).
+      🔸 Avoid duplicate values if the same info is repeated across pages or sections.
       🔸 Return valid, minified JSON only. No explanation or markdown.
     PROMPT
   end
