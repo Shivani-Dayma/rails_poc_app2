@@ -93,10 +93,10 @@ const ViewFile = () => {
 
         <div className="back-container">
           <button className="back-btn" onClick={() => window.history.back()}>
-            ← Back
+            Back
           </button>
           <button className="download-btn" onClick={handleDownload}>
-            ⬇ Download File
+            Download File
           </button>
         </div>
       </div>

@@ -3,7 +3,7 @@ import "../../styles/FileModal.css";
 
 const FileModal = ({ onClose, onSubmit, templateId = null }) => {
   const fileInputRef = useRef();
-  const [templateName, setTemplateName] = useState("");
+  const [fileName, setFileName] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,7 +18,7 @@ const FileModal = ({ onClose, onSubmit, templateId = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!templateName.trim()) {
+    if (!fileName.trim()) {
       setError("File name is required.");
       return;
     }
@@ -32,7 +32,7 @@ const FileModal = ({ onClose, onSubmit, templateId = null }) => {
 
     try {
       const formData = new FormData();
-      formData.append("file_name", templateName.trim());
+      formData.append("file_name", fileName.trim());
       formData.append("file", file);
 
       const url = "/general_files";
@@ -71,9 +71,9 @@ const FileModal = ({ onClose, onSubmit, templateId = null }) => {
           <input
             className="form-input"
             type="text"
-            value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
-            placeholder="Enter template name"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="Enter File name"
             disabled={loading}
           />
 
