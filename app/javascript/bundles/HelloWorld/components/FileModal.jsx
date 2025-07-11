@@ -66,10 +66,8 @@ const FileModal = ({ onClose, onSubmit, templateId = null }) => {
         <button className="modal-close" onClick={onClose}>
           ×
         </button>
-        <h2 className="modal-title">Create Template</h2>
-
         <form onSubmit={handleSubmit}>
-          <label className="form-label">Template Name</label>
+          <label className="form-label">File Name</label>
           <input
             className="form-input"
             type="text"
@@ -100,7 +98,7 @@ const FileModal = ({ onClose, onSubmit, templateId = null }) => {
           {error && <div className="error-text">{error}</div>}
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? "Creating..." : "Create Template"}
+            {loading ? "Creating..." : "Create File"}
           </button>
         </form>
       </div>
