@@ -75,16 +75,30 @@ const ViewFile = () => {
         <div className="extracted-data-card">
           {data.extracted_records.length > 0 ? (
             <div className="record-list">
-              {data.extracted_records.map((record, index) => (
-                <div key={index} className="record-card">
-                  {Object.entries(record).map(([key, value]) => (
-                    <div key={key} className="record-field">
-                      <span className="field-key">{capitalize(key)}:</span>
-                      <span className="field-value">{value || "—"}</span>
-                    </div>
-                  ))}
+              {data.extracted_records.length > 0 ? (
+                <div className="record-table-wrapper">
+                  <table className="record-table">
+                    <thead>
+                      <tr>
+                        {Object.keys(data.extracted_records[0]).map((key) => (
+                          <th key={key}>{capitalize(key)}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.extracted_records.map((record, index) => (
+                        <tr key={index}>
+                          {Object.values(record).map((value, i) => (
+                            <td key={i}>{value || "—"}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
+              ) : (
+                <div className="no-files">No extracted records available.</div>
+              )}
             </div>
           ) : (
             <div className="no-files">No extracted records available.</div>
