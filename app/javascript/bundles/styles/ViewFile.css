@@ -129,3 +129,91 @@
   word-break: break-word;
   white-space: pre-wrap;
 }
+
+.header-info-card, .compliance-info-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.compliance-info-card {
+  background: #f8fafc;
+  border-left: 4px solid #3b82f6;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 8px;
+}
+
+.compliance-text {
+  color: #374151;
+  line-height: 1.6;
+}
+
+.compliance-text p {
+  margin-bottom: 12px;
+}
+
+.compliance-text strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.compliance-note {
+  margin-top: 16px;
+  padding: 12px;
+  background: #e0f2fe;
+  border-radius: 6px;
+  border-left: 3px solid #0369a1;
+  font-size: 0.95rem;
+}
+
+.header-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.header-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.header-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.header-value {
+  color: #1f2937;
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+.back-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.excel-btn {
+  background-color: #059669;
+}
+
+.excel-btn:hover {
+  background-color: #047857;
+}

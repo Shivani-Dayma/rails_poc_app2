@@ -10,6 +10,11 @@ class GeneralFileParserService
     base64_content = encode_file
     return unless base64_content
 
+    # Extract header information first and save as a record
+    header_data = extract_header_information(base64_content)
+    save_header_record(header_data) if header_data
+
+    # Then extract table data (existing flow)
     parsed_data = extract_with_direct_approach(base64_content)
     parsed_data
   end
@@ -22,6 +27,135 @@ class GeneralFileParserService
   rescue => e
     Rails.logger.error("Encoding file failed: #{e.message}")
     nil
+  end
+
+  def extract_header_information(base64_content)
+    prompt = build_header_extraction_prompt
+    response = send_gemini_request(base64_content, prompt)
+
+    if response
+      header_data = parse_header_response(response)
+      Rails.logger.info "Header extraction: Successfully extracted header information"
+      header_data
+    else
+      Rails.logger.error "Header extraction failed"
+      nil
+    end
+  end
+
+  def build_header_extraction_prompt
+    <<~PROMPT
+      You are looking at an FSA form. I need you to extract ONLY the header/form information (NOT the table data).
+
+      **Extract these specific header fields:**
+
+      1. Form Type (like "FSA - 578" or similar form identifier)
+      2. Producer Name (the main producer name, usually prominent at the top)
+      3. Producer Address (complete address including street, city, state, zip)
+      4. Farm Number (usually a 4-digit number like 3655)
+      5. Tract Number (usually a 4-digit number like 2302)
+      6. Program Year (if mentioned)
+      7. County Office (FSA county office location)
+      8. Legal Description (the legal land description, often contains sections, townships)
+      9. Total Farmland (acreage numbers)
+      10. Total Cropland (acreage numbers)
+      11. Reported Cropland (acreage numbers)
+      12. OMB Control Number (like "0560-0175")
+      13. Estimated Response Time (like "15 minutes")
+      14. Privacy Act Reference (like "Privacy Act of 1974")
+      15. Legal Authority (key acts mentioned like "Farm Security and Rural Investment Act")
+
+      **OUTPUT FORMAT:**
+      Return the information in this exact format (one field per line):
+
+      FORM_TYPE: [value or BLANK]
+      PRODUCER_NAME: [value or BLANK]
+      PRODUCER_ADDRESS: [value or BLANK]
+      FARM_NUMBER: [value or BLANK]
+      TRACT_NUMBER: [value or BLANK]
+      PROGRAM_YEAR: [value or BLANK]
+      COUNTY_OFFICE: [value or BLANK]
+      LEGAL_DESCRIPTION: [value or BLANK]
+      TOTAL_FARMLAND: [value or BLANK]
+      TOTAL_CROPLAND: [value or BLANK]
+      REPORTED_CROPLAND: [value or BLANK]
+      OMB_CONTROL_NUMBER: [value or BLANK]
+      RESPONSE_TIME: [value or BLANK]
+      PRIVACY_ACT: [value or BLANK]
+      LEGAL_AUTHORITY: [value or BLANK]
+
+      **IMPORTANT:**
+      - Only extract information from the header/form areas, NOT from data tables
+      - If a field is not found or unclear, use "BLANK"
+      - Be precise with numbers and text
+      - For addresses, combine all address lines into one field
+      - For legal authority, summarize key acts mentioned (not the full text)
+    PROMPT
+  end
+
+  def parse_header_response(response_text)
+    return {} if response_text.blank?
+
+    header_data = {}
+
+    lines = response_text.split("\n")
+    lines.each do |line|
+      line = line.strip
+      next if line.empty?
+
+      if line.include?(':')
+        key, value = line.split(':', 2)
+        key = key.strip.downcase.gsub('_', '_')
+        value = value.strip
+
+        # Convert to our expected field names
+        case key
+        when 'form_type'
+          header_data[:form_type] = value == 'BLANK' ? nil : value
+        when 'producer_name'
+          header_data[:producer_name] = value == 'BLANK' ? nil : value
+        when 'producer_address'
+          header_data[:producer_address] = value == 'BLANK' ? nil : value
+        when 'farm_number'
+          header_data[:farm_number] = value == 'BLANK' ? nil : value
+        when 'tract_number'
+          header_data[:tract_number] = value == 'BLANK' ? nil : value
+        when 'program_year'
+          header_data[:program_year] = value == 'BLANK' ? nil : value
+        when 'county_office'
+          header_data[:county_office] = value == 'BLANK' ? nil : value
+        when 'legal_description'
+          header_data[:legal_description] = value == 'BLANK' ? nil : value
+        when 'total_farmland'
+          header_data[:total_farmland] = value == 'BLANK' ? nil : value
+        when 'total_cropland'
+          header_data[:total_cropland] = value == 'BLANK' ? nil : value
+        when 'reported_cropland'
+          header_data[:reported_cropland] = value == 'BLANK' ? nil : value
+        when 'omb_control_number'
+          header_data[:omb_control_number] = value == 'BLANK' ? nil : value
+        when 'response_time'
+          header_data[:response_time] = value == 'BLANK' ? nil : value
+        when 'privacy_act'
+          header_data[:privacy_act] = value == 'BLANK' ? nil : value
+        when 'legal_authority'
+          header_data[:legal_authority] = value == 'BLANK' ? nil : value
+        end
+      end
+    end
+
+    Rails.logger.info "Parsed header data: #{header_data.inspect}"
+    header_data
+  end
+
+  def save_header_record(header_data)
+    # Add a special identifier to mark this as header data
+    header_record_data = header_data.merge(record_type: 'header')
+
+    @general_file.extracted_records.create!(data: header_record_data)
+    Rails.logger.info "Saved header information as extracted record"
+  rescue => e
+    Rails.logger.error "Failed to save header information: #{e.message}"
   end
 
   def extract_with_direct_approach(base64_content)
@@ -165,7 +299,7 @@ class GeneralFileParserService
   def fix_farm_tract_for_second_crop(records)
     return records if records.empty?
 
-    field_1a_records = records.select { |r| r["CLU/Field"] == "1A" }
+    _field_1a_records = records.select { |r| r["CLU/Field"] == "1A" }
     field_1b_records = records.select { |r| r["CLU/Field"] == "1B" }
 
     field_1b_records.each do |record|
@@ -204,11 +338,9 @@ class GeneralFileParserService
       "FSA Physical Location" => clean_value(values[20]),
       "NAP Unit" => clean_value(values[21]),
       "Signature Date" => clean_value(values[22]),
-      "Field ID" => clean_value(values[23]),
-
+      "Field ID" => clean_value(values[23])
     }
 
-    # Validate record has essential data
     if has_essential_data?(record)
       record
     else
@@ -222,19 +354,16 @@ class GeneralFileParserService
 
     cleaned = value.to_s.strip
 
-    # Handle some common cleaning
-    cleaned = cleaned.gsub(/["""]/, '"')  # Normalize quotes
-    cleaned = cleaned.gsub(/\s+/, ' ')    # Normalize whitespace
+    cleaned = cleaned.gsub(/["""]/, '"')
+    cleaned = cleaned.gsub(/\s+/, ' ')
 
     cleaned
   end
 
   def has_essential_data?(record)
-    # Must have crop and field info
     essential_fields = ["CLU/Field", "Crop/Comm"]
     essential_present = essential_fields.all? { |field| !record[field].empty? }
 
-    # Count non-empty fields
     non_empty_count = record.values.count { |v| !v.empty? }
 
     essential_present && non_empty_count >= 6

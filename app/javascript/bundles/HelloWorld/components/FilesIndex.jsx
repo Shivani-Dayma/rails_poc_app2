@@ -31,6 +31,8 @@ const FilesIndex = () => {
   }, []);
 
   const handleDelete = (id) => {
+    if (!confirm("Are you sure you want to delete this file?")) return;
+    
     fetch(`/general_files/${id}`, {
       method: "DELETE",
     })
@@ -115,97 +117,135 @@ const FilesIndex = () => {
 
   if (loading)
     return (
-      <div style={{ textAlign: "center", marginTop: 40 }}>
-        Loading files...
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading files...</p>
       </div>
     );
+    
   if (error)
-    return <div style={{ color: "red", textAlign: "center" }}>{error}</div>;
+    return (
+      <div className="error-container">
+        <p>⚠️ {error}</p>
+      </div>
+    );
 
   return (
     <div className="files-container">
       <div className="files-wrapper">
-        <div className="file-header">File Manager</div>
-        <button className="button-base button-create" onClick={handleCreateNew}>
-          + Upload New File
-        </button>
-        {uploadSuccess && <div className="success-msg">Upload successful!</div>}
-        {createSuccess && (
-          <div className="success-msg">File created successfully!</div>
-        )}
-        {files.length === 0 ? (
-          <div className="no-files">No files found.</div>
-        ) : (
-          <div className="file-table">
-            <div className="table-header">
-              <span style={{ paddingLeft: "30px" }}>Name</span>
-              <span style={{ paddingRight: "200px" }}>Actions</span>
-            </div>
+        <div className="page-header">
+          <div className="header-content">
+            <h1 className="page-title">File Manager</h1>
+            <p className="page-subtitle">Upload and manage your FSA forms</p>
+          </div>
+          <button className="upload-button" onClick={handleCreateNew}>
+            <span className="upload-icon">+</span>
+            Upload New File
+          </button>
+        </div>
 
-            {files.map((file) => (
-              <div key={file.id} className="table-row">
-                <span className="file-name" style={{ marginLeft: "30px" }}>
-                  {editingId === file.id ? (
-                    <input
-                      className="file-input"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      autoFocus
-                    />
-                  ) : (
-                    file.file_name
-                  )}
-                </span>
-
-                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                  {editingId === file.id ? (
-                    <div className="file-edit-row">
-                      <button
-                        className="button-base button-update"
-                        onClick={() => handleEditSave(file.id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="button-base button-delete"
-                        onClick={handleEditCancel}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        className="button-base button-history"
-                        onClick={() => handleView(file.id)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="button-base button-update"
-                        onClick={() => handleEdit(file)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="button-base button-download"
-                        onClick={() => handleDownload(file.id)}
-                      >
-                        Download
-                      </button>
-                      <button
-                        className="button-base button-delete"
-                        onClick={() => handleDelete(file.id)}
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+        {/* Success Messages */}
+        {uploadSuccess && (
+          <div className="alert alert-success">
+            <span className="alert-icon">✓</span>
+            Upload successful!
           </div>
         )}
+        {createSuccess && (
+          <div className="alert alert-success">
+            <span className="alert-icon">✓</span>
+            File created successfully!
+          </div>
+        )}
+
+        {/* Files Table */}
+        <div className="files-card">
+          {files.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📄</div>
+              <h3>No files uploaded yet</h3>
+              <p>Upload your first FSA form to get started</p>
+              <button className="upload-button-secondary" onClick={handleCreateNew}>
+                Upload Your First File
+              </button>
+            </div>
+          ) : (
+            <div className="files-table">
+              <div className="table-header">
+                <div className="table-cell header-cell">File Name</div>
+                <div className="table-cell header-cell">Actions</div>
+              </div>
+
+              {files.map((file) => (
+                <div key={file.id} className="table-row">
+                  <div className="table-cell file-name-cell">
+                    {editingId === file.id ? (
+                      <input
+                        className="file-name-input"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleEditSave(file.id)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="file-name">{file.file_name}</span>
+                    )}
+                  </div>
+
+                  <div className="table-cell actions-cell">
+                    {editingId === file.id ? (
+                      <div className="action-buttons edit-mode">
+                        <button
+                          className="action-btn btn-save"
+                          onClick={() => handleEditSave(file.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="action-btn btn-cancel"
+                          onClick={handleEditCancel}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn btn-view"
+                          onClick={() => handleView(file.id)}
+                          title="View details"
+                        >
+                          View
+                        </button>
+                        <button
+                          className="action-btn btn-edit"
+                          onClick={() => handleEdit(file)}
+                          title="Edit name"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="action-btn btn-download"
+                          onClick={() => handleDownload(file.id)}
+                          title="Download Excel"
+                        >
+                          Download
+                        </button>
+                        <button
+                          className="action-btn btn-delete"
+                          onClick={() => handleDelete(file.id)}
+                          title="Delete file"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {showForm && (
           <FileModal

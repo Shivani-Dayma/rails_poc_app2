@@ -56,8 +56,37 @@ const ViewFile = () => {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await fetch(`/general_files/${id}/download_excel`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to download Excel file");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `extracted_records_${id}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      alert("Error downloading Excel file: " + error.message);
+    }
+  };
+
   if (error) return <div className="error">{error}</div>;
   if (!data) return <div className="loading">Loading...</div>;
+
+  const hasHeaderInfo = data.header_info && 
+    Object.entries(data.header_info)
+      .filter(([key]) => key !== 'record_type') // Exclude the record_type field
+      .some(([, value]) => value && value.toString().trim() !== '');
 
   return (
     <div className="page-bg">
@@ -72,33 +101,81 @@ const ViewFile = () => {
           </div>
         </div>
 
+        {/* Header Information Section */}
+        {hasHeaderInfo && (
+          <div className="header-info-card">
+            <h3 className="section-title">Form Information</h3>
+            <div className="header-grid">
+              {Object.entries(data.header_info)
+                .filter(([key]) => key !== 'record_type') // Exclude record_type from display
+                .map(([key, value]) => {
+                  if (!value || value.toString().trim() === '') return null;
+                  
+                  const isFullWidth = ['producer_address', 'legal_description'].includes(key);
+                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+                  
+                  return (
+                    <div key={key} className={`header-item ${isFullWidth ? 'full-width' : ''}`}>
+                      <span className="header-label">{label}:</span>
+                      <span className="header-value">{value}</span>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Compliance & Legal Information Section */}
+        {data.header_info && (data.header_info.omb_control_number || data.header_info.response_time || data.header_info.privacy_act || data.header_info.legal_authority) && (
+          <div className="compliance-info-card">
+            <h3 className="section-title">Compliance & Legal Information</h3>
+            <div className="compliance-text">
+              {data.header_info.omb_control_number && (
+                <p><strong>OMB Control Number:</strong> {data.header_info.omb_control_number}</p>
+              )}
+              {data.header_info.response_time && (
+                <p><strong>Estimated Response Time:</strong> {data.header_info.response_time}</p>
+              )}
+              {data.header_info.privacy_act && (
+                <p><strong>Privacy Act:</strong> {data.header_info.privacy_act}</p>
+              )}
+              {data.header_info.legal_authority && (
+                <p><strong>Legal Authority:</strong> {data.header_info.legal_authority}</p>
+              )}
+              <p className="compliance-note">
+                <strong>Note:</strong> This form is submitted in accordance with federal regulations. 
+                All information provided is used for program eligibility determination and benefit administration.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Extracted Records Section */}
         <div className="extracted-data-card">
-          {data.extracted_records.length > 0 ? (
+          <h3 className="section-title">Extracted Records</h3>
+          {data.extracted_records && data.extracted_records.length > 0 ? (
             <div className="record-list">
-              {data.extracted_records.length > 0 ? (
-                <div className="record-table-wrapper">
-                  <table className="record-table">
-                    <thead>
-                      <tr>
-                        {Object.keys(data.extracted_records[0]).map((key) => (
-                          <th key={key}>{capitalize(key)}</th>
+              <div className="record-table-wrapper">
+                <table className="record-table">
+                  <thead>
+                    <tr>
+                      {(data.column_order || Object.keys(data.extracted_records[0])).map((key) => (
+                        <th key={key}>{capitalize(key)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.extracted_records.map((record, index) => (
+                      <tr key={index}>
+                        {(data.column_order || Object.keys(record)).map((key, i) => (
+                          <td key={i}>{record[key] || "—"}</td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {data.extracted_records.map((record, index) => (
-                        <tr key={index}>
-                          {Object.values(record).map((value, i) => (
-                            <td key={i}>{value || "—"}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="no-files">No extracted records available.</div>
-              )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="no-files">No extracted records available.</div>
@@ -112,6 +189,11 @@ const ViewFile = () => {
           <button className="download-btn" onClick={handleDownload}>
             Download File
           </button>
+          {data.extracted_records && data.extracted_records.length > 0 && (
+            <button className="download-btn excel-btn" onClick={handleDownloadExcel}>
+              Download Excel
+            </button>
+          )}
         </div>
       </div>
     </div>
