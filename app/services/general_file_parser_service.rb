@@ -66,6 +66,10 @@ class GeneralFileParserService
       18. End Date (often blank)
       19. Producer Share (percentage)
       20. Producer Name
+      21. FSA Physical Location
+      22. NAP Unit
+      23. Signature Date
+      24. Field ID
 
       **STEP 3: For multiple producers per crop**
       If you see multiple producers listed for one crop (like 4 different names with different percentages), create separate entries for each producer. Each gets the same crop info but different producer details.
@@ -196,7 +200,12 @@ class GeneralFileParserService
       "P/P" => clean_value(values[16]),
       "End Date" => clean_value(values[17]),
       "Producer Share" => clean_value(values[18]),
-      "Producer Name" => clean_value(values[19])
+      "Producer Name" => clean_value(values[19]),
+      "FSA Physical Location" => clean_value(values[20]),
+      "NAP Unit" => clean_value(values[21]),
+      "Signature Date" => clean_value(values[22]),
+      "Field ID" => clean_value(values[23]),
+
     }
 
     # Validate record has essential data
